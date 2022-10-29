@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//myabtis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hzj.shop.mapper.CommentMapper">
+<!--    普通用户-评论管理-我的评论-->
+    <select id="MyCommentList" resultType="com.hzj.shop.pojo.dto.CommentDto">
+        select c.cid,s.shopid,s.shopname,c.comment,c.grade,c.ctime
+        from shop s,comment c
+        where s.shopid=c.shopid and mid= #{mid}
+        <if test="search!=null">
+            and comment like '%' #{search} '%'
+        </if>
+        order by c.ctime DESC
+    </select>
+
+<!--    商家、管理员-店铺详情 店铺评论 /  商家-店铺管理-店铺评论 -->
+    <select id="CommentList" resultType="com.hzj.shop.pojo.dto.CommentDto">
+        select c.cid,m.mid,m.username,c.comment,c.ctime,c.grade
+            from members m,comment c
+            where m.mid = c.mid and shopid=#{shopid}
+            order by c.ctime desc
+    </select>
+
+<!--  普通用户-店铺详情界面-店铺评论  默认置顶自己的评论  -->
+    <select id="MemberToShopDetailCommentList" resultType="com.hzj.shop.pojo.dto.CommentDto">
+        select c.cid,m.mid,m.username,c.comment,c.ctime,c.grade
+            from members m,comment c
+            where m.mid = c.mid and shopid=#{shopid}
+            order by case when m.mid=${mid} then 0 else 1 end , c.cid desc
+    </select>
+
+    <!--
+         商家-店铺管理-店铺评论
+        <select id="MyShopCommentList" resultType="com.hzj.shop.pojo.dto.CommentDto">
+            select m.username,c.comment,c.ctime,c.grade
+            from members m,comment c
+            where m.mid = c.mid and shopid= #{shopid}
+            order by c.ctime desc
+        </select>
+    -->
+
+
+</mapper>

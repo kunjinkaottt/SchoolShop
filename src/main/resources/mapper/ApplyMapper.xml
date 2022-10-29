@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//myabtis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hzj.shop.mapper.ApplyMapper">
+    <!--  普通用户-应聘管理 0处理中 1通过 2不通过-->
+    <select id="MemberApplyList" resultType="com.hzj.shop.pojo.dto.MemberApplyDto">
+        select a.applyid,s.shopid,s.shopname,b.truename businessTruename,b.phone bPhone,s.address,a.applytime,a.mid
+        from apply a,shop s,business b
+        where a.shopid=s.shopid
+        and s.bid=b.bid and s.bid=b.bid
+        and a.mid= #{mid} and a.applystate= #{applystate}
+        <if test="search!=null">
+            and CONCAT(shopname,address) like '%' #{search} '%'
+        </if>
+    </select>
+
+    <!--  商家-员工管理-应聘申请 获取shopid该店铺的所有应聘申请-->
+    <select id="AllApplyList" resultType="com.hzj.shop.pojo.dto.MemberApplyDto">
+        select m.mid,m.truename memberTruename ,m.gender,m.phone mPhone,a.applytime
+        from apply a,members m
+        where a.mid=m.mid and a.shopid=#{shopid} and applystate=0
+        order by applytime
+    </select>
+
+
+</mapper>
+

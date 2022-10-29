@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//myabtis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hzj.shop.mapper.BusinessMapper">
+    <!--   管理员-审核管理-未审核的商家申请 -->
+    <select id="ExamineBusinessList" resultType="com.hzj.shop.pojo.dto.BusinessDto">
+        select b.bid,b.truename,b.gender,b.phone,s.shopid,s.address
+        from business b  left join shop s on s.shopid=b.shopid
+        where s.status=3 and b.state=0
+        <if test="search!=null">
+            and b.phone like '%' #{search} '%'
+        </if>
+         order by convert(b.truename using gbk) collate gbk_chinese_ci,convert(s.address using gbk) collate gbk_chinese_ci
+    </select>
+
+    <!--   管理员-审核管理-不通过的商家申请 -->
+    <select id="FailBusinessList" resultType="com.hzj.shop.pojo.dto.BusinessDto">
+        select b.bid,b.truename,b.gender,b.phone,s.shopid,s.address
+        from business b  left join shop s on s.shopid=b.shopid
+        where b.state=2
+        <if test="search!=null">
+            and b.phone like '%' #{search} '%'
+        </if>
+        order by convert(b.truename using gbk) collate gbk_chinese_ci,convert(s.address using gbk) collate gbk_chinese_ci
+    </select>
+
+<!--    管理员-用户管理-商家账号-->
+    <select id="AllBusinessList" resultType="com.hzj.shop.pojo.dto.BusinessDto">
+        select b.bid,b.truename,b.gender,b.phone,b.state,b.shopid,b.password,
+        (select status from shop where shopid=b.shopid) status,
+        (select address from shop where shopid=b.shopid) address
+        from business b
+        <if test="search!=null">
+            where b.phone like '%' #{search} '%'
+        </if>
+        order by case `state` when 1 then 1 when 2 then 2 when 0 then 3 end
+        ,convert(b.truename using gbk) collate gbk_chinese_ci
+    </select>
+
+</mapper>

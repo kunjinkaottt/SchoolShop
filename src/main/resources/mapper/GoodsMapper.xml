@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//myabtis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hzj.shop.mapper.GoodsMapper">
+<!--   商家-商品管理-所有商品 （获取所有商品列表）-->
+    <select id="goodsList" resultType="com.hzj.shop.pojo.Goods">
+        select * from goods where shopid = #{shopid} and isdelete=0
+        <if test="search!=null">
+            and CONCAT(goodsname,goodstype) like '%' #{search} '%'
+        </if>
+        order by convert(goodsname using gbk) collate gbk_chinese_ci
+    </select>
+<!-- 商家-商品管理-商品分类-->
+    <select id="goodstype" resultType="com.hzj.shop.pojo.dto.GoodsTypeDto">
+        select count(gid) count, goodstype from goods
+        where shopid=#{shopid} and isdelete = 0
+        GROUP BY goodstype
+    </select>
+<!--    普通用户-首页-查看（店铺详情界面）-所有商品-->
+    <select id="memberToGoodsList" resultType="com.hzj.shop.pojo.dto.MemberToGoodsDto">
+        select * ,(select fid from favorites where gid=g.gid and shopid = #{shopid} and mid = #{mid}) fid,
+               (select isfavorite from favorites where gid=g.gid and shopid = #{shopid} and mid = #{mid}) isfavorite
+        from goods g
+        where shopid = #{shopid} and isdelete=0
+        <if test="search!=null">
+            and CONCAT(g.goodsname,g.goodstype) like '%' #{search} '%'
+        </if>
+        order by convert(goodsname using gbk) collate gbk_chinese_ci
+    </select>
+<!-- 商家、管理员-首页-店铺详情-所有商品-->
+    <select id="toGoodsList" resultType="com.hzj.shop.pojo.Goods">
+        select *
+        from goods g
+        where shopid = #{shopid} and isdelete=0
+        <if test="search!=null">
+            and CONCAT(g.goodsname,g.goodstype) like '%' #{search} '%'
+        </if>
+        order by convert(goodsname using gbk) collate gbk_chinese_ci
+    </select>
+
+
+</mapper>

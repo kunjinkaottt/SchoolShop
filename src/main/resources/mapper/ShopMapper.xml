@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//myabtis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hzj.shop.mapper.ShopMapper">
+
+    <!--    <resultMap id="MembersHomeMap" type="com.hzj.shop.controller.dto.MembersWithShopDto">
+            <result property="shopid" column="shopid"/>
+            <result property="photo" column="photo"/>
+            <result property="shopname" column="shopname"/>
+            <result property="phone" column="introduce"/>
+            <result property="openinghours" column="openinghours"/>
+            <result property="status" column="status"/>
+            <result property="bid" column="bid"/>
+            <result property="shoptype" column="shoptype"/>
+            <result property="address" column="address"/>
+            <result property="recruit" column="recruit"/>
+        </resultMap>-->
+
+    <!--    管理员-首页 商家-首页（模糊查询）-->
+    <select id="ShopABusinessList" resultType="com.hzj.shop.pojo.dto.ShopABusinessListDto">
+        select s.shopid,s.photo,s.shopname,b.bid,b.truename,b.phone,s.shoptype,s.status,s.address,
+        (select round(avg(grade),1) from comment where shopid=s.shopid) avgGrade
+        from shop s left join business b on s.bid=b.bid
+        <if test="search!=null">
+            where CONCAT(s.shopname,s.shoptype) like '%' #{search} '%'
+        </if>
+        order by s.status,convert(s.shopname using gbk) collate gbk_chinese_ci,convert(s.address using gbk) collate
+        gbk_chinese_ci
+    </select>
+
+    <!--    商家-首页  ！！默认置顶自己的店铺！！-->
+    <select id="BusinessHome" resultType="com.hzj.shop.pojo.dto.ShopABusinessListDto">
+        select s.shopid,s.photo,s.shopname,b.bid,b.truename,b.phone,s.shoptype,s.status,s.address,
+        (select round(avg(grade),1) from comment where shopid=s.shopid) avgGrade
+        from shop s left join business b on s.bid=b.bid
+        order by case when s.shopid= #{shopid}  then 0 else 1 end ,
+        s.status,convert(s.shopname using gbk) collate gbk_chinese_ci,convert(s.address using gbk) collate gbk_chinese_ci
+    </select>
+
+    <!--    普通用户首页-->
+    <select id="membersHome" resultType="com.hzj.shop.pojo.dto.MembersWithShopDto">
+        select s.shopid,s.photo,s.shopname,b.phone,s.shoptype,s.status,s.address
+        ,(select round(avg(grade),1) from comment where shopid=s.shopid) avgGrade
+        ,(select fid from favorites where gid=0 and shopid = s.shopid and mid = #{mid} ) fid
+        ,(select isfavorite from favorites where gid=0 and shopid = s.shopid and mid = #{mid} ) isfavorite
+        from shop s left join business b on s.bid=b.bid
+        <if test="search!=null">
+            where CONCAT(s.shopname,s.shoptype) like '%' #{search} '%'
+        </if>
+        order by s.status,
+        convert(s.shopname using gbk) collate gbk_chinese_ci,
+        convert(s.address using gbk) collate gbk_chinese_ci
+    </select>
+    <!--  普通用户首页          新——卡片样式 可指定排序字段       round(avg(grade),1)小数点后保留一位-->
+    <select id="membersHome2" resultType="com.hzj.shop.pojo.dto.MembersWithShopDto">
+        select s.shopid,s.photo,s.shopname,s.shoptype,s.status,s.address
+        ,(select round(avg(grade),1) from comment where shopid=s.shopid) avgGrade
+        ,(select fid from favorites where gid=0 and shopid = s.shopid and mid = #{mid} ) fid
+        ,(select isfavorite from favorites where gid=0 and shopid = s.shopid and mid = #{mid} ) isfavorite
+        ,(select count(fid) from favorites f where gid=0 and f.isfavorite=1 and f.shopid=s.shopid) fcount
+        from shop s
+        <if test="search!=null">
+            where CONCAT(s.shopname,s.shoptype) like '%' #{search} '%'
+        </if>
+        order by
+        <if test='sortItem=="status"'>
+            s.status,
+        </if>
+        <if test='sortItem=="avgGrade"'>
+            avgGrade desc,
+        </if>
+        <if test='sortItem=="fcount"'>
+            fcount desc,
+        </if>
+        <if test='sortItem=="shopid"'>
+            s.shopid,
+        </if>
+        convert(s.shopname using gbk) collate gbk_chinese_ci,
+        convert(s.address using gbk) collate gbk_chinese_ci desc
+    </select>
+<!-- 外单内双    -->
+
+    <!--    管理员-店铺管理-营业的/休息的店铺 -->
+    <select id="ShopManage" resultType="com.hzj.shop.pojo.dto.ShopABusinessListDto">
+        select s.shopid,s.photo,s.shopname,b.bid,b.truename,b.phone,s.shoptype,s.status,s.address
+        from shop s left join business b on s.bid=b.bid
+        where s.status=#{status}
+        <if test="search!=null">
+            and CONCAT(s.shopname,s.address) like '%' #{search} '%'
+        </if>
+        order by convert(s.shopname using gbk) collate gbk_chinese_ci,convert(s.address using gbk) collate
+        gbk_chinese_ci
+    </select>
+
+    <!--    管理员-店铺管理-待租的店铺  （因为待租店铺还没有商家，要区分于上面，对于待租店铺的操作只需要单表（店铺表）查询）-->
+    <select id="RentShopManage" resultType="com.hzj.shop.pojo.Shop">
+        select s.shopid,s.photo,s.shopname,s.shoptype,s.status,s.address
+            from shop s
+            where s.status=3
+        <if test="search!=null">
+            and CONCAT(s.address) like '%' #{search} '%'
+        </if>
+            order by convert(s.address using gbk) collate gbk_chinese_ci
+    </select>
+
+    <!--    管理员-店铺管理-店铺分类-->
+    <select id="shoptype" resultType="com.hzj.shop.pojo.dto.ShopTypeDto">
+        select count(shopid) count, shoptype from shop where shoptype &lt;&gt; '' GROUP BY shoptype
+    </select>
+    <!--          &lt;&gt; 表示不等于 <> -->
+
+    <!--   普通用户-店铺详情 -->
+    <select id="MemberToShopDetail" resultType="com.hzj.shop.pojo.dto.MembersWithShopDto">
+        select s.shopid,s.photo,s.shopname,s.introduce,s.openinghours,s.status,b.bid,s.shoptype,s.address,s.recruit,b.truename,b.phone
+        ,(select round(avg(grade),1) from comment where shopid=s.shopid) avgGrade
+        ,(select fid from favorites where gid=0 and shopid = #{shopid} and mid = #{mid}) fid
+        ,(select isfavorite from favorites where gid=0 and shopid = #{shopid} and mid = #{mid} ) isfavorite
+        from shop s,business b
+        where s.shopid=b.shopid and b.state = 1 and s.bid = b.bid and s.shopid = #{shopid}
+    </select>
+    <!--   商家、管理员-店铺详情 -->
+    <select id="ToShopDetail" resultType="com.hzj.shop.pojo.dto.ShopDetailDto">
+         select s.shopid,s.photo,s.shopname,s.introduce,s.openinghours,s.status,b.bid,s.shoptype,s.address,s.recruit,b.truename,b.phone
+        ,(select round(avg(grade),1) from comment where shopid=s.shopid) avgGrade
+        from shop s,business b
+        where s.shopid=b.shopid and b.state = 1 and s.bid = b.bid and s.shopid = #{shopid}
+    </select>
+
+</mapper>

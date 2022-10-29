@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//myabtis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hzj.shop.mapper.FavoritesMapper">
+<!--    普通用户-收藏管理-收藏的店铺-->
+    <select id="FavoriteShopList" resultType="com.hzj.shop.pojo.dto.FavoriteShopDto">
+        select f.fid,s.shopid,s.shopname,s.photo,b.bid,b.truename,b.phone,s.shoptype,s.status,s.address,f.isfavorite,f.mid
+        from favorites f,shop s,business b
+        where f.shopid = s.shopid
+        and s.shopid = b.shopid
+        and f.isfavorite = 1
+        and f.mid = #{mid}
+        and f.gid=0
+        and b.state=1
+        <if test="search!=null">
+            and CONCAT(s.shopname,s.shoptype) like '%' #{search} '%'
+        </if>
+    </select>
+
+<!--普通用户-收藏管理-收藏的商品-->
+    <select id="FavoriteGoodsList" resultType="com.hzj.shop.pojo.dto.FavoriteGoodsDto">
+        select distinct f.fid,s.shopid,g.gid,s.shopname,g.img,g.goodsname,g.price,g.goodstype,s.address,f.isfavorite,f.mid
+        from favorites f,goods g,shop s
+        where f.shopid = s.shopid
+        and g.shopid=s.shopid
+        and f.gid = g.gid
+        and f.isfavorite = 1
+        and f.mid = #{mid}
+        and f.gid &lt;&gt; 0
+        and g.isdelete=0
+        <if test="search!=null">
+            and CONCAT(g.goodsname,g.goodstype) like '%' #{search} '%'
+        </if>
+        order by s.shopid
+    </select>
+
+</mapper>

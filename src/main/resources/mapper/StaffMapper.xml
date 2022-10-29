@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//myabtis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hzj.shop.mapper.StaffMapper">
+
+<!-- 商家-员工管理-员工信息 页面加载时执行-->
+    <select id="mystaffList" resultType="java.util.Map">
+        select s.staffid,m.mid,m.truename,m.gender,m.phone,s.create_time
+            from staff s,members m
+            where s.mid=m.mid and s.shopid =#{shopid}
+            <if test="search!=null">
+                and CONCAT(m.truename,m.phone) like '%' #{search} '%'
+            </if>
+            order by s.create_time desc
+    </select>
+
+
+
+</mapper>

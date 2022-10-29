@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//myabtis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hzj.shop.mapper.MemberMapper">
+
+<!--    管理员-用户管理-普通用户 -->
+    <select id="allMembers" resultType="com.hzj.shop.pojo.dto.AllMembersDto">
+        select m.mid ,m.truename,m.gender,m.username,m.phone,m.password
+            from members m
+            <if test="search!=null">
+                where m.phone like '%' #{search} '%'
+            </if>
+            order by convert(m.truename using gbk) collate gbk_chinese_ci
+    </select>
+<!--                " limit " + (currentPage - 1) * pageSize + "," + pageSize + " " -->
+
+
+
+
+</mapper>
